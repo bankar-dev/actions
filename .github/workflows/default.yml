@@ -2,6 +2,11 @@ name: Trigger Gitlab CI/CD
 
 on:
   workflow_call:
+    inputs:
+      enabled:
+        type: boolean
+        required: false
+        default: false
     secrets:
       GITLAB_TOKEN:
         required: true
@@ -15,8 +20,14 @@ on:
         required: true
 
 jobs:
+  init:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Init
+        run: echo "OK"
   build:
     runs-on: ubuntu-latest
+    if: ${{ inputs.enabled }}
     steps:
       - name: Trigger Gitlab
         env:
