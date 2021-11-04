@@ -53,17 +53,23 @@ jobs:
       - name: Wait
         run: |
           sleep $SLEEP_TIME
-          PIPELINE_STATUS=$(curl --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}" | jq .status);
+      - name: Check
+        run: |
+          PIPELINE_INFO=$(curl --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}");
+          echo $PIPELINE_INFO
+          PIPELINE_STATUS=$(echo $PIPELINE_INFO | jq .status);
+          echo $PIPELINE_STATUS
           while [ $PIPELINE_STATUS = '"pending"' ] || [ $PIPELINE_STATUS = '"running"' ]; do
             echo "waiting ..."
             sleep $SLEEP_TIME
-            PIPELINE_STATUS=$(curl --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}" | jq .status);
+            PIPELINE_INFO=$(curl --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}");
+            echo $PIPELINE_INFO
+            PIPELINE_STATUS=$(echo $PIPELINE_INFO | jq .status);
             echo "Pipeline status: $PIPELINE_STATUS"
-
           done
-          echo "Pipeline status: $PIPELINE_STATUS"
       - name: Exit
         run: |
+          echo "Pipeline status: $PIPELINE_STATUS"
           if [[ $PIPELINE_STATUS != '"success"' ]]; then
             exit 1
           fi
