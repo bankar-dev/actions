@@ -44,7 +44,7 @@ jobs:
       - name: Trigger Gitlab
         id: trigger-gitlab
         run: |
-          PIPELINE_ID=$(curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipeline?ref=${GITLAB_PROJECT_BRANCH}" | jq .id)
+          PIPELINE_ID=$(curl -s --request POST --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipeline?ref=${GITLAB_PROJECT_BRANCH}" | jq .id)
           echo "PIPELINE_ID=$PIPELINE_ID"
           if [ -z $PIPELINE_ID ] || [ "$PIPELINE_ID" == "null" ]; then
            exit 1
@@ -56,12 +56,12 @@ jobs:
         env:
           PIPELINE_ID: ${{ steps.trigger-gitlab.outputs.pipeline_id }}
         run: |
-          PIPELINE_INFO=$(curl --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}");
+          PIPELINE_INFO=$(curl -s --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}");
           PIPELINE_STATUS=$(echo $PIPELINE_INFO | jq .status);
           while [ $PIPELINE_STATUS = '"pending"' ] || [ $PIPELINE_STATUS = '"running"' ]; do
             echo "waiting ..."
             sleep $SLEEP_TIME
-            PIPELINE_INFO=$(curl --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}");
+            PIPELINE_INFO=$(curl -s --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}");
             PIPELINE_STATUS=$(echo $PIPELINE_INFO | jq .status);
             echo "Pipeline status: $PIPELINE_STATUS"
           done
