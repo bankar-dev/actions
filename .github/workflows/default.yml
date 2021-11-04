@@ -10,13 +10,9 @@ on:
     secrets:
       GITLAB_TOKEN:
         required: true
-      GITLAB_PIPELINE_API_URL:
+      GITLAB_PROJECT_BRANCH:
         required: true
-      GITLAB_PIPELINE_BASE_URL:
-        required: true
-      GITLAB_PIPELINE_TOKEN:
-        required: true
-      GITLAB_WEBHOOK_URL:
+      GITLAB_PROJECT_ID:
         required: true
 
 jobs:
@@ -32,10 +28,6 @@ jobs:
       - name: Trigger Gitlab
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          GITLAB_PIPELINE_API_URL: ${{ secrets.GITLAB_PIPELINE_API_URL }}
-          GITLAB_PIPELINE_BASE_URL: ${{ secrets.GITLAB_PIPELINE_BASE_URL }}
-          GITLAB_PIPELINE_TOKEN: ${{ secrets.GITLAB_PIPELINE_TOKEN }}
-          GITLAB_WEBHOOK_URL: ${{ secrets.GITLAB_WEBHOOK_URL }}
           GITLAB_BASE_URL: "https://gitlab.com/api/v4/projects"
           GITLAB_PROJECT_BRANCH: ${{ secrets.GITLAB_PROJECT_BRANCH }}
           GITLAB_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
@@ -49,7 +41,7 @@ jobs:
           GITHUB_BRANCH=$(jq --raw-output .repository.master_branch "$GITHUB_EVENT_PATH")
           GITHUB_PULLREQUEST=$(jq --raw-output .pull_request._links.html.href "$GITHUB_EVENT_PATH")
           PIPELINE_ID=$(curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" -F variables[GH_REPOSITORY]=$GITHUB_REPOSITORY -F variables[GH_COMMIT]=$GITHUB_COMMIT -F variables[GH_BRANCH]=$GITHUB_BRANCH -F variables[GH_PULLREQUEST_BRANCH]=$GITHUB_PULLREQUEST_BRANCH -F variables[GH_PULLREQUEST]="$GITHUB_PULLREQUEST" -F variables[GH_PROJECT_NAME]=$GITHUB_PROJECT_NAME "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipeline?ref=${GITLAB_PROJECT_BRANCH}" | jq .id)
-          if [ -z $PIPELINE_ID ]; then
+          if [ -z $PIPELINE_ID ] || [ "$PIPELINE_ID" == "null" ]; then
            exit 1
           fi
           echo "Gitlab pipeline id: $PIPELINE_ID"
