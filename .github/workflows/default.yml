@@ -53,6 +53,7 @@ jobs:
           echo "${GITLAB_BASE_URL}/$PIPELINE_ID"
           echo "::set-output name=pipeline_id::$PIPELINE_ID"
       - name: Check
+        id: pipeline-running
         env:
           PIPELINE_ID: ${{ steps.trigger-gitlab.outputs.pipeline_id }}
         run: |
@@ -65,7 +66,10 @@ jobs:
             PIPELINE_STATUS=$(echo $PIPELINE_INFO | jq .status);
             echo "Pipeline status: $PIPELINE_STATUS"
           done
+          echo "::set-output name=pipeline_status::$PIPELINE_STATUS"
       - name: Exit
+        env:
+          PIPELINE_STATUS: ${{ steps.pipeline-running.outputs.pipeline_status }}
         run: |
           echo "Pipeline status: $PIPELINE_STATUS"
           if [[ $PIPELINE_STATUS != '"success"' ]]; then
