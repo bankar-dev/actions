@@ -37,6 +37,8 @@ jobs:
           GITLAB_PIPELINE_TOKEN: ${{ secrets.GITLAB_PIPELINE_TOKEN }}
           GITLAB_WEBHOOK_URL: ${{ secrets.GITLAB_WEBHOOK_URL }}
           GITLAB_BASE_URL: "https://gitlab.com/api/v4/projects"
+          GITLAB_PROJECT_BRANCH: ${{ secrets.GITLAB_PROJECT_BRANCH }}
+          GITLAB_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
         run: |
           GITHUB_EVENT=$(jq --raw-output . "$GITHUB_EVENT_PATH")
           echo $GITHUB_EVENT
