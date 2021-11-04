@@ -48,7 +48,7 @@ jobs:
           GITHUB_PULLREQUEST_BRANCH=$(jq --raw-output .pull_request.head.ref "$GITHUB_EVENT_PATH")
           GITHUB_BRANCH=$(jq --raw-output .repository.master_branch "$GITHUB_EVENT_PATH")
           GITHUB_PULLREQUEST=$(jq --raw-output .pull_request._links.html.href "$GITHUB_EVENT_PATH")
-          PIPELINE_ID=$(curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" -F variables[GH_REPOSITORY]=$GITHUB_REPOSITORY -F variables[GH_COMMIT]=$GITHUB_COMMIT -F variables[GH_BRANCH]=$GITHUB_BRANCH -F variables[GH_PULLREQUEST_BRANCH]=$GITHUB_PULLREQUEST_BRANCH -F variables[GH_PULLREQUEST]="$GITHUB_PULLREQUEST" -F variables[GH_PROJECT_NAME]=$GITHUB_PROJECT_NAME ${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipeline?ref=${GITLAB_PROJECT_BRANCH} | jq .id)
+          PIPELINE_ID=$(curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" -F variables[GH_REPOSITORY]=$GITHUB_REPOSITORY -F variables[GH_COMMIT]=$GITHUB_COMMIT -F variables[GH_BRANCH]=$GITHUB_BRANCH -F variables[GH_PULLREQUEST_BRANCH]=$GITHUB_PULLREQUEST_BRANCH -F variables[GH_PULLREQUEST]="$GITHUB_PULLREQUEST" -F variables[GH_PROJECT_NAME]=$GITHUB_PROJECT_NAME "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipeline?ref=${GITLAB_PROJECT_BRANCH}" | jq .id)
           echo "Gitlab pipeline id: $PIPELINE_ID"
           echo "${GITLAB_PIPELINE_BASE_URL}/$PIPELINE_ID"
           while [[ $PIPELINE_STATUS != '"success"' && $PIPELINE_STATUS != '"failed"' && $PIPELINE_STATUS != '"canceled"' ]]
