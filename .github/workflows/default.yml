@@ -24,6 +24,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     if: ${{ inputs.enabled }}
+    env:
+      GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+      GITLAB_BASE_URL: "https://gitlab.com/api/v4/projects"
+      GITLAB_PROJECT_BRANCH: ${{ secrets.GITLAB_PROJECT_BRANCH }}
+      GITLAB_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
+      SLEEP_TIME: 10
     steps:
       - name: Info
         run: |
@@ -36,11 +42,6 @@ jobs:
             GITHUB_BRANCH=$(jq --raw-output .repository.master_branch "$GITHUB_EVENT_PATH")
             GITHUB_PULLREQUEST=$(jq --raw-output .pull_request._links.html.href "$GITHUB_EVENT_PATH")
       - name: Trigger Gitlab
-        env:
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          GITLAB_BASE_URL: "https://gitlab.com/api/v4/projects"
-          GITLAB_PROJECT_BRANCH: ${{ secrets.GITLAB_PROJECT_BRANCH }}
-          GITLAB_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
         run: |
           PIPELINE_ID=$(curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipeline?ref=${GITLAB_PROJECT_BRANCH}" | jq .id)
           echo "PIPELINE_ID=$PIPELINE_ID"
@@ -48,16 +49,21 @@ jobs:
            exit 1
           fi
           echo "Gitlab pipeline id: $PIPELINE_ID"
-          echo "${GITLAB_PIPELINE_BASE_URL}/$PIPELINE_ID"
-          while [[ $PIPELINE_STATUS != '"success"' && $PIPELINE_STATUS != '"failed"' && $PIPELINE_STATUS != '"canceled"' ]]
-          do
+          echo "${GITLAB_BASE_URL}/$PIPELINE_ID"
+      - name: Wait
+        run: |
+          sleep $SLEEP_TIME
+          PIPELINE_STATUS=$(curl --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}" | jq .status);
+          while [ $PIPELINE_STATUS = '"pending"' ] || [ $PIPELINE_STATUS = '"running"' ]; do
             echo "waiting ..."
-            sleep 10
-            PIPELINE_STATUS=$(curl -Ss --header 'PRIVATE-TOKEN: ${GITLAB_TOKEN}' "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/$PIPELINE_ID" | jq .status);
+            sleep $SLEEP_TIME
+            PIPELINE_STATUS=$(curl --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}" | jq .status);
             echo "Pipeline status: $PIPELINE_STATUS"
 
           done
           echo "Pipeline status: $PIPELINE_STATUS"
+      - name: Exit
+        run: |
           if [[ $PIPELINE_STATUS != '"success"' ]]; then
             exit 1
           fi
