@@ -55,7 +55,7 @@ jobs:
           do
             echo "waiting ..."
             sleep 30
-            PIPELINE_STATUS=$(curl -Ss --header 'PRIVATE-TOKEN: ${GITLAB_TOKEN}' ${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/$PIPELINE_ID | jq .status);
+            PIPELINE_STATUS=$(curl -Ss --header 'PRIVATE-TOKEN: ${GITLAB_TOKEN}' "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/$PIPELINE_ID" | jq .status);
             echo "Pipeline status: $PIPELINE_STATUS"
 
           done
