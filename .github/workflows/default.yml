@@ -25,6 +25,16 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ inputs.enabled }}
     steps:
+      - name: Info
+        run: |
+            GITHUB_EVENT=$(jq --raw-output . "$GITHUB_EVENT_PATH")
+            echo $GITHUB_EVENT
+            GITHUB_PROJECT_NAME=$(jq --raw-output .repository.name "$GITHUB_EVENT_PATH")
+            GITHUB_REPOSITORY=$(jq --raw-output .repository.full_name "$GITHUB_EVENT_PATH")
+            GITHUB_COMMIT=$GITHUB_SHA	# $(jq --raw-output .after "$GITHUB_EVENT_PATH")
+            GITHUB_PULLREQUEST_BRANCH=$(jq --raw-output .pull_request.head.ref "$GITHUB_EVENT_PATH")
+            GITHUB_BRANCH=$(jq --raw-output .repository.master_branch "$GITHUB_EVENT_PATH")
+            GITHUB_PULLREQUEST=$(jq --raw-output .pull_request._links.html.href "$GITHUB_EVENT_PATH")
       - name: Trigger Gitlab
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
@@ -32,14 +42,6 @@ jobs:
           GITLAB_PROJECT_BRANCH: ${{ secrets.GITLAB_PROJECT_BRANCH }}
           GITLAB_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
         run: |
-          GITHUB_EVENT=$(jq --raw-output . "$GITHUB_EVENT_PATH")
-          echo $GITHUB_EVENT
-          GITHUB_PROJECT_NAME=$(jq --raw-output .repository.name "$GITHUB_EVENT_PATH")
-          GITHUB_REPOSITORY=$(jq --raw-output .repository.full_name "$GITHUB_EVENT_PATH")
-          GITHUB_COMMIT=$GITHUB_SHA	# $(jq --raw-output .after "$GITHUB_EVENT_PATH")
-          GITHUB_PULLREQUEST_BRANCH=$(jq --raw-output .pull_request.head.ref "$GITHUB_EVENT_PATH")
-          GITHUB_BRANCH=$(jq --raw-output .repository.master_branch "$GITHUB_EVENT_PATH")
-          GITHUB_PULLREQUEST=$(jq --raw-output .pull_request._links.html.href "$GITHUB_EVENT_PATH")
           PIPELINE_ID=$(curl --request POST --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipeline?ref=${GITLAB_PROJECT_BRANCH}" | jq .id)
           echo "PIPELINE_ID=$PIPELINE_ID"
           if [ -z $PIPELINE_ID ] || [ "$PIPELINE_ID" == "null" ]; then
