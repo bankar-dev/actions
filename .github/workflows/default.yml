@@ -57,14 +57,11 @@ jobs:
           PIPELINE_ID: ${{ steps.trigger-gitlab.outputs.pipeline_id }}
         run: |
           PIPELINE_INFO=$(curl --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}");
-          echo $PIPELINE_INFO
           PIPELINE_STATUS=$(echo $PIPELINE_INFO | jq .status);
-          echo $PIPELINE_STATUS
           while [ $PIPELINE_STATUS = '"pending"' ] || [ $PIPELINE_STATUS = '"running"' ]; do
             echo "waiting ..."
             sleep $SLEEP_TIME
             PIPELINE_INFO=$(curl --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}");
-            echo $PIPELINE_INFO
             PIPELINE_STATUS=$(echo $PIPELINE_INFO | jq .status);
             echo "Pipeline status: $PIPELINE_STATUS"
           done
