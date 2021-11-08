@@ -10,6 +10,8 @@ on:
     secrets:
       GITLAB_TOKEN:
         required: true
+      GITLAB_PIPELINE_TOKEN:
+        required: true
       GITLAB_PROJECT_BRANCH:
         required: true
       GITLAB_PROJECT_ID:
@@ -26,6 +28,7 @@ jobs:
     if: ${{ inputs.enabled }}
     env:
       GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+      GITLAB_PIPELINE_TOKEN: ${{ secrets.GITLAB_PIPELINE_TOKEN }}
       GITLAB_BASE_URL: "https://gitlab.com/api/v4/projects"
       GITLAB_PROJECT_BRANCH: ${{ secrets.GITLAB_PROJECT_BRANCH }}
       GITLAB_PROJECT_ID: ${{ secrets.GITLAB_PROJECT_ID }}
@@ -44,7 +47,13 @@ jobs:
       - name: Trigger Gitlab
         id: trigger-gitlab
         run: |
-          PIPELINE_ID=$(curl -s --request POST --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipeline?ref=${GITLAB_PROJECT_BRANCH}" --data-raw '{"ref":"refs/heads/main","variables_attributes": [{"variable_type":"env_var","key":"GITHUB_REPOSITORY","secret_value":"$GITHUB_REPOSITORY"},{"variable_type":"env_var","key":"GITHUB_SHA","secret_value":"$GITHUB_SHA"}] }'| jq .id)
+          PIPELINE_ID=$(curl -s -X POST \
+           -F token=${GITLAB_PIPELINE_TOKEN} \
+           -F "ref=${GITLAB_PROJECT_BRANCH}" \
+           -F "variables[GITHUB_REF_NAME]=$GITHUB_REF_NAME" \
+           -F "variables[GITHUB_REPOSITORY]=$GITHUB_REPOSITORY" \
+           -F "variables[GITHUB_SHA]=$GITHUB_SHA" \
+           ${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/trigger/pipeline | jq .id)
           echo "PIPELINE_ID=$PIPELINE_ID"
           if [ -z $PIPELINE_ID ] || [ "$PIPELINE_ID" == "null" ]; then
            exit 1
