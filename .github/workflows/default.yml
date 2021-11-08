@@ -44,7 +44,7 @@ jobs:
       - name: Trigger Gitlab
         id: trigger-gitlab
         run: |
-          PIPELINE_ID=$(curl -s --request POST --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipeline?ref=${GITLAB_PROJECT_BRANCH}" | jq .id)
+          PIPELINE_ID=$(curl -s --request POST --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipeline?ref=${GITLAB_PROJECT_BRANCH}" --data-raw '{"ref":"refs/heads/main","variables_attributes": [{"variable_type":"env_var","key":"GITHUB_REPOSITORY","secret_value":"$GITHUB_REPOSITORY"},{"variable_type":"env_var","key":"GITHUB_SHA","secret_value":"$GITHUB_SHA"}] }'| jq .id)
           echo "PIPELINE_ID=$PIPELINE_ID"
           if [ -z $PIPELINE_ID ] || [ "$PIPELINE_ID" == "null" ]; then
            exit 1
