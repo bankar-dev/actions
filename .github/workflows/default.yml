@@ -47,13 +47,15 @@ jobs:
       - name: Trigger Gitlab
         id: trigger-gitlab
         run: |
-          PIPELINE_ID=$(curl -s -X POST \
+          PIPELINE=$(curl -s -X POST \
            -F token=${GITLAB_PIPELINE_TOKEN} \
            -F "ref=${GITLAB_PROJECT_BRANCH}" \
            -F "variables[GITHUB_REF_NAME]=$GITHUB_REF_NAME" \
            -F "variables[GITHUB_REPOSITORY]=$GITHUB_REPOSITORY" \
            -F "variables[GITHUB_SHA]=$GITHUB_SHA" \
-           ${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/trigger/pipeline | jq .id)
+           ${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/trigger/pipeline)
+          echo "PIPELINE=$PIPELINE"
+          PIPELINE_ID=$(echo $PIPELINE | jq .id)
           echo "PIPELINE_ID=$PIPELINE_ID"
           if [ -z $PIPELINE_ID ] || [ "$PIPELINE_ID" == "null" ]; then
            exit 1
@@ -68,8 +70,7 @@ jobs:
         run: |
           PIPELINE_INFO=$(curl -s --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}");
           PIPELINE_STATUS=$(echo $PIPELINE_INFO | jq .status);
-          while [ $PIPELINE_STATUS = '"pending"' ] || [ $PIPELINE_STATUS = '"running"' ]; do
-            echo "waiting ..."
+          while [ $PIPELINE_STATUS = '"created"' ] || [ $PIPELINE_STATUS = '"pending"' ] || [ $PIPELINE_STATUS = '"running"' ]; do
             sleep $SLEEP_TIME
             PIPELINE_INFO=$(curl -s --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" "${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/pipelines/${PIPELINE_ID}");
             PIPELINE_STATUS=$(echo $PIPELINE_INFO | jq .status);
