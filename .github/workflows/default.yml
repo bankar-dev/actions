@@ -56,12 +56,13 @@ jobs:
            ${GITLAB_BASE_URL}/${GITLAB_PROJECT_ID}/trigger/pipeline)
           echo "PIPELINE=$PIPELINE"
           PIPELINE_ID=$(echo $PIPELINE | jq .id)
+          PIPELINE_URL=$(echo $PIPELINE | jq .web_url)
           echo "PIPELINE_ID=$PIPELINE_ID"
           if [ -z $PIPELINE_ID ] || [ "$PIPELINE_ID" == "null" ]; then
            exit 1
           fi
           echo "Gitlab pipeline id: $PIPELINE_ID"
-          echo "${GITLAB_BASE_URL}/$PIPELINE_ID"
+          echo "${PIPELINE_URL}"
           echo "::set-output name=pipeline_id::$PIPELINE_ID"
       - name: Check
         id: pipeline-running
