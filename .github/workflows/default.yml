@@ -6,7 +6,7 @@ on:
       enabled:
         type: boolean
         required: false
-        default: false
+        default: true
     secrets:
       GITLAB_TOKEN:
         required: true
