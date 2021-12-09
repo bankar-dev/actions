@@ -83,6 +83,6 @@ jobs:
           PIPELINE_STATUS: ${{ steps.pipeline-running.outputs.pipeline_status }}
         run: |
           echo "Pipeline status: $PIPELINE_STATUS"
-          if [[ $PIPELINE_STATUS != '"success"' ]]; then
+          if [[ $PIPELINE_STATUS != '"success"' ]] || [ $PIPELINE_STATUS = '"manual"' ]; then
             exit 1
           fi
